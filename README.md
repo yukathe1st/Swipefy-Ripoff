@@ -1,4 +1,6 @@
 # Swipefy Ripoff
 A litte Swipefy Copy written just by AI and using PocketBase
-### Disclaimer:
+### Current Status
+There are __~1730__ Song in the database right now.
+#### Disclaimer:
 This Project is NOT affiliated with Swipefy B.V. in any way.
