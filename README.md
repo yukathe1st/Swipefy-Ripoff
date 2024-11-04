@@ -1,5 +1,5 @@
 # Swipefy Ripoff
-A litte Swipefy Copy written just by AI and using PocketBase
+A litte Swipefy Copy written just by AI and using PocketBase (dont take it to serious pls)
 ## Current Status
 There are __~1730__ Song in the database right now.
 <hr>
