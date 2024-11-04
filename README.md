@@ -3,7 +3,7 @@ A litte Swipefy Copy written just by AI and using PocketBase (dont take it to se
 > [!NOTE]  
 > It may take a few moments for the Page to load (API is not optimized).
 ## Current Status
-There are __~4300__ Song in the database right now.
+There are __~5620__ Song in the database right now.
 <hr>
 <p>
 Get the real Swipefy here: https://swipefy.app
