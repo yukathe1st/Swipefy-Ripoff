@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swipefy Ripoff</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .text-container.single-line {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            position: relative;
+        }
+        .text-container.single-line::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: 0;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(to right, transparent, white);
+        }
+        .progress-bar {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 100%;
+            height: 5px;
+            background: #ddd;
+            outline: none;
+            opacity: 0.7;
+            transition: opacity .2s;
+        }
+        .progress-bar::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 15px;
+            height: 15px;
+            background: #000000;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+        .progress-bar::-moz-range-thumb {
+            width: 15px;
+            height: 15px;
+            background: #000000;
+            cursor: pointer;
+            border-radius: 50%;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-4">
+    <div id="loadingIcon" class="fixed inset-0 flex items-center justify-center bg-white z-50">
+        <svg class="animate-spin h-10 w-10 text-blue-500" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+        </svg>
+    </div>
+    <div id="song-list" class="w-full max-w-md bg-white rounded-xl shadow-md p-4 mb-4" style="min-height: 400px;">
+        <!-- Song content will be inserted here -->
+    </div>
+
+    <button id="settingsButton" class="fixed top-4 right-4 z-50 p-2 bg-white bg-opacity-70 backdrop-blur-sm rounded-full shadow-md hover:bg-opacity-100 transition-colors" aria-label="Settings">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-600 rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+        </svg>
+    </button>
+
+    <div id="settingsPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-xl shadow-xl max-w-sm w-full">
+            <h2 class="text-xl font-bold mb-4">Settings</h2>
+            <div class="mb-4">
+                <label class="flex items-center cursor-pointer">
+                    <div class="relative mr-2">
+                        <input type="checkbox" id="singleLineToggle" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Show Song Title in One Line</span>
+                </label>
+            </div>
+            <div class="mb-4">
+                <label class="flex items-center cursor-pointer">
+                    <div class="relative mr-2">
+                        <input type="checkbox" id="autoplayToggle" class="sr-only peer" checked>
+                        <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
+                    </div>
+                    <span class="text-sm font-medium text-gray-900">Autoplay</span>
+                </label>
+            </div>
+            <button id="closeSettings" class="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Close</button>
+        </div>
+    </div>
+
+    <button id="showLikesButton" class="mt-4 bg-green-500 text-white py-2 px-6 rounded-full hover:bg-green-600 transition-colors hidden">Show Likes</button>
+
+    <div id="likedSongsPopup" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center hidden z-50">
+        <div class="bg-white p-6 rounded-xl shadow-xl w-11/12 h-5/6 max-w-4xl overflow-hidden flex flex-col">
+            <h2 class="text-xl font-bold mb-4">Liked Songs</h2>
+            <ul id="likedSongsList" class="mb-4 overflow-y-auto flex-grow">
+                <!-- Liked songs will be inserted here -->
+            </ul>
+            <button id="closeLikedSongs" class="mt-4 w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 transition-colors">Close</button>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/pocketbase@0.21.1/dist/pocketbase.umd.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Create PocketBase instance
+            const pb = new PocketBase('https://yunus-music-app.pockethost.io');
+            const songList = document.getElementById('song-list');
+            const singleLineToggle = document.getElementById('singleLineToggle');
+            const autoplayToggle = document.getElementById('autoplayToggle');
+            const settingsButton = document.getElementById('settingsButton');
+            const settingsPopup = document.getElementById('settingsPopup');
+            const closeSettings = document.getElementById('closeSettings');
+            const showLikesButton = document.getElementById('showLikesButton');
+            const likedSongsPopup = document.getElementById('likedSongsPopup');
+            const likedSongsList = document.getElementById('likedSongsList');
+            const closeLikedSongs = document.getElementById('closeLikedSongs');
+            let allSongs = [];
+            let isFirstInteraction = true;
+            let isAutoplayEnabled = true;
+            let likedSongs = [];
+
+            async function fetchAllSongs() {
+                try {
+                    allSongs = await pb.collection('songs').getFullList();
+                    return allSongs;
+                } catch (error) {
+                    console.error('Error fetching songs:', error);
+                    songList.innerHTML = '<p class="text-red-500">Error fetching songs. Please try again later.</p>';
+                    return [];
+                }
+            }
+
+            async function fetchRandomSong() {
+                if (allSongs.length === 0) {
+                    await fetchAllSongs();
+                }
+                if (allSongs.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * allSongs.length);
+                    displaySong(allSongs[randomIndex]);
+                } else {
+                    songList.innerHTML = '<p class="text-gray-500">No songs available.</p>';
+                }
+            }
+
+            function displaySong(song) {
+                songList.innerHTML = ''; // Reset the list
+                const li = document.createElement('div');
+                li.className = 'bg-white rounded-xl shadow-md p-4';
+                li.innerHTML = `
+                    <img src="${song.cover_url}" alt="${song.Name} Cover" class="w-full h-auto rounded-xl mb-4 object-cover">
+                    <div class="text-container mb-2 single-line">
+                        <h2 class="text-xl font-bold">${song.Name}</h2>
+                    </div>
+                    <div class="text-container mb-4">
+                        <p class="text-gray-600">${song.Artist_s}</p>
+                    </div>
+                    <div class="custom-audio-player mb-4">
+                        <audio id="audioPlayer" src="${song.preview_url}"></audio>
+                        <div class="flex items-center space-x-2">
+                            <button id="playPauseBtn" class="p-2 rounded-full bg-blue-500 text-white hover:bg-blue-600 transition-colors rounded-full" aria-label="Play/Pause">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
+                            </button>
+                            <input type="range" id="progressBar" class="progress-bar flex-grow" value="0" min="0" max="100">
+                            <button id="replayBtn" class="p-2 rounded-full bg-gray-200 text-gray-600 hover:bg-gray-300 transition-colors rounded-full" aria-label="Replay">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                                </svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="flex justify-center space-x-4">
+                        <button class="dislike p-2 rounded-full bg-red-100 hover:bg-red-200 transition-colors rounded-full" onclick="handleDislike('${song.id}')" aria-label="Dislike">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-red-500 rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
+                        </button>
+                        <button class="like p-2 rounded-full bg-green-100 hover:bg-green-200 transition-colors rounded-full" onclick="handleLike('${song.id}', '${song.Name}', '${song.Artist_s}', '${song.spotify_id}')" aria-label="Like">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-green-500 rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 10h4.764a2 2 0 011.789 2.894l-3.5 7A2 2 0 0115.263 21h-4.017c-.163 0-.326-.02-.485-.06L7 20m7-10V5a2 2 0 00-2-2h-.095c-.5 0-.905.405-.905.905 0 .714-.211 1.412-.608 2.006L7 11v9m7-10h-2M7 20H5a2 2 0 01-2-2v-6a2 2 0 012-2h2.5" />
+                            </svg>
+                        </button>
+                    </div>
+                `;
+                songList.appendChild(li);
+                
+                updateTextDisplay();
+                setupAudioPlayer();
+            }
+
+            function setupAudioPlayer() {
+                const audioPlayer = document.getElementById('audioPlayer');
+                const playPauseBtn = document.getElementById('playPauseBtn');
+                const progressBar = document.getElementById('progressBar');
+                const replayBtn = document.getElementById('replayBtn');
+
+                if (!audioPlayer || !playPauseBtn || !progressBar || !replayBtn) {
+                    console.error('One or more audio player elements were not found.');
+                    return;
+                }
+
+                playPauseBtn.addEventListener('click', togglePlayPause);
+                progressBar.addEventListener('input', seek);
+                replayBtn.addEventListener('click', replay);
+                audioPlayer.addEventListener('timeupdate', updateProgress);
+                audioPlayer.addEventListener('ended', audioEnded);
+
+                if (isAutoplayEnabled && !isFirstInteraction) {
+                    audioPlayer.play().catch(e => console.error('Autoplay was prevented:', e));
+                    updatePlayPauseButton(true);
+                }
+
+                function togglePlayPause() {
+                    if (audioPlayer.paused) {
+                        audioPlayer.play();
+                        updatePlayPauseButton(true);
+                    } else {
+                        audioPlayer.pause();
+                        updatePlayPauseButton(false);
+                    }
+                }
+
+                function updatePlayPauseButton(isPlaying) {
+                    if (isPlaying) {
+                        playPauseBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 9v6m4-6v6m7-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        `;
+                    } else {
+                        playPauseBtn.innerHTML = `
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 rounded-full" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z" />
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                        `;
+                    }
+                }
+
+                function seek() {
+                    const seekTime = audioPlayer.duration * (progressBar.value / 100);
+                    audioPlayer.currentTime = seekTime;
+                }
+
+                function replay() {
+                    audioPlayer.currentTime = 0;
+                    audioPlayer.play();
+                    updatePlayPauseButton(true);
+                }
+
+                function updateProgress() {
+                    const progress = (audioPlayer.currentTime / audioPlayer.duration) * 100;
+                    progressBar.value = progress;
+                    progressBar.style.backgroundSize = `${progress}% 100%`;
+                }
+
+                function audioEnded() {
+                    updatePlayPauseButton(false);
+                }
+            }
+
+            window.handleLike = function(songId, songName, artist, spotifyId) {
+                console.log(`Song ${songId} liked!`);
+                likedSongs.push({ name: songName, artist: artist, spotifyId: spotifyId });
+                handleInteraction();
+            }
+
+            window.handleDislike = function(songId) {
+                console.log(`Song ${songId} disliked!`);
+                handleInteraction();
+            }
+
+            function handleInteraction() {
+                if (isFirstInteraction) {
+                    isFirstInteraction = false;
+                }
+                fetchRandomSong();
+            }
+
+            function updateTextDisplay() {
+                const songNameContainer = document.querySelector('.text-container.mb-2');
+                const artistContainer = document.querySelector('.text-container.mb-4');
+                
+                if (songNameContainer && artistContainer) {
+                    if (singleLineToggle.checked) {
+                        songNameContainer.classList.add('single-line');
+                        artistContainer.classList.add('single-line');
+                    } else {
+                        songNameContainer.classList.remove('single-line');
+                        artistContainer.classList.remove('single-line');
+                    }
+                }
+            }
+
+            function showLikedSongs() {
+                likedSongsList.innerHTML = '';
+                if (likedSongs.length === 0) {
+                    likedSongsList.innerHTML = '<li class="text-gray-500">No songs liked in this session.</li>';
+                } else {
+                    likedSongs.forEach(song => {
+                        const li = document.createElement('li');
+                        li.className = 'mb-4 p-4 bg-gray-100 rounded-xl flex justify-between items-center';
+                        li.innerHTML = `
+                            <div>
+                                <h3 class="font-bold">${song.name}</h3>
+                                <p class="text-gray-600">${song.artist}</p>
+                            </div>
+                            <a href="https://open.spotify.com/track/${song.spotifyId}" target="_blank" rel="noopener noreferrer" class="flex items-center bg-green-500 text-white px-6 py-2 rounded-full hover:bg-green-600 transition-colors">
+                                <svg class="w-6 h-6 mr-2 rounded-full" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                                    <path d="M12 0C5.4 0 0 5.4 0 12s5.4 12 12 12 12-5.4 12-12S18.66 0 12 0zm5.521 17.34c-.24.359-.66.48-1.021.24-2.82-1.74-6.36-2.101-10.561-1.141-.418.122-.779-.179-.899-.539-.12-.421.18-.78.54-.9 4.56-1.021 8.52-.6 11.64 1.32.42.18.479.659.301 1.02zm1.44-3.3c-.301.42-.841.6-1.262.3-3.239-1.98-8.159-2.58-11.939-1.38-.479.12-1.02-.12-1.14-.6-.12-.48.12-1.021.6-1.141C9.6 9.9 15 10.561 18.72 12.84c.361.181.54.78.241 1.2zm.12-3.36C15.24 8.4 8.82 8.16 5.16 9.301c-.6.179-1.2-.181-1.38-.721-.18-.601.18-1.2.72-1.381 4.26-1.26 11.28-1.02 15.721 1.621.539.3.719 1.02.419 1.56-.299.421-1.02.599-1.559.3z"/>
+                                </svg>
+                                Show on Spotify
+                            </a>
+                        `;
+                        likedSongsList.appendChild(li);
+                    });
+                }
+                likedSongsPopup.classList.remove('hidden');
+            }
+
+            singleLineToggle.addEventListener('change', updateTextDisplay);
+            autoplayToggle.addEventListener('change', (e) => {
+                isAutoplayEnabled = e.target.checked;
+            });
+
+            settingsButton.addEventListener('click', () => {
+                settingsPopup.classList.remove('hidden');
+            });
+
+            closeSettings.addEventListener('click', () => {
+                settingsPopup.classList.add('hidden');
+            });
+
+            settingsPopup.addEventListener('click', (e) => {
+                if (e.target === settingsPopup) {
+                    settingsPopup.classList.add('hidden');
+                }
+            });
+
+            showLikesButton.addEventListener('click', showLikedSongs);
+
+            closeLikedSongs.addEventListener('click', () => {
+                likedSongsPopup.classList.add('hidden');
+            });
+
+            likedSongsPopup.addEventListener('click', (e) => {
+                if (e.target === likedSongsPopup) {
+                    likedSongsPopup.classList.add('hidden');
+                }
+            });
+
+            // Make progress bar smoother
+            const progressBar = document.getElementById('progressBar');
+            if (progressBar) {
+                progressBar.style.transition = 'background-size 0.1s linear';
+                progressBar.style.backgroundSize = '0% 100%';
+                progressBar.style.backgroundImage = 'linear-gradient(#3b82f6, #3b82f6)';
+                progressBar.style.backgroundRepeat = 'no-repeat';
+            }
+
+            function hideLoadingIcon() {
+                document.getElementById('loadingIcon').classList.add('hidden');
+                document.getElementById('showLikesButton').classList.remove('hidden');
+            }
+
+            // Initial fetch of songs
+            fetchAllSongs().then(() => {
+                fetchRandomSong();
+                hideLoadingIcon();
+            });
+        });
+    </script>
+</body>
+</html>
