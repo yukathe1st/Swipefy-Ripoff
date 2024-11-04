@@ -6,7 +6,7 @@ There are __~1730__ Song in the database right now.
 <p>
 Shoutout to Sjoerd (@netlob) for creating Swipefy
 </p>
-***
+<hr>
 <p>
 <em>Disclaimer: This Project is NOT affiliated with Swipefy B.V. in any way.<em>
 <p>
