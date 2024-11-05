@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swipefy Ripoff</title>
+    <title>Swipefy - Song List</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         .text-container.single-line {
@@ -114,9 +114,13 @@
     <script>
         // Konfigurierbare Variablen für den Ladebildschirm
         const loadingTexts = [
-            "Swipefy Ripoff takes a moment to load, please wait...",
+            "Loading awesome music...",
+            "Preparing Songs...",
+            "Getting ready to rock..."
         ];
-        const loadingTextDuration = 5; // Dauer in Sekunden
+        const loadingTextDuration = 3; // Dauer in Sekunden
+
+        let isFirstSongChange = true;
 
         document.addEventListener('DOMContentLoaded', function() {
             // Create PocketBase instance
@@ -247,9 +251,14 @@
                 audioPlayer.addEventListener('timeupdate', updateProgress);
                 audioPlayer.addEventListener('ended', audioEnded);
 
-                if (isAutoplayEnabled && !isFirstInteraction) {
-                    audioPlayer.play().catch(e => console.error('Autoplay was prevented:', e));
-                    updatePlayPauseButton(true);
+                // Autoplay-Logik
+                if (isAutoplayEnabled && !isFirstSongChange) {
+                    audioPlayer.play().then(() => {
+                        updatePlayPauseButton(true);
+                    }).catch(e => {
+                        console.error('Autoplay was prevented:', e);
+                        updatePlayPauseButton(false);
+                    });
                 }
 
                 function togglePlayPause() {
@@ -304,11 +313,13 @@
             window.handleLike = function(songId, songName, artist, spotifyId) {
                 console.log(`Song ${songId} liked!`);
                 likedSongs.push({ name: songName, artist: artist, spotifyId: spotifyId });
+                isFirstSongChange = false;
                 fetchRandomSong();
             }
 
             window.handleDislike = function(songId) {
                 console.log(`Song ${songId} disliked!`);
+                isFirstSongChange = false;
                 fetchRandomSong();
             }
 
@@ -355,7 +366,7 @@
 
             singleLineToggle.addEventListener('change', updateTextDisplay);
             autoplayToggle.addEventListener('change', (e) => {
-                isAutoplayEnabled = e.target.checked;
+                updateAutoplayStatus(e.target.checked);
             });
 
             settingsButton.addEventListener('click', () => {
@@ -404,6 +415,13 @@
                 fetchRandomSong();
                 hideLoadingScreen();
             });
+
+            function updateAutoplayStatus(status) {
+                isAutoplayEnabled = status;
+                if (status && document.getElementById('audioPlayer')) {
+                    document.getElementById('audioPlayer').play().catch(e => console.error('Autoplay was prevented:', e));
+                }
+            }
         });
     </script>
 </body>
