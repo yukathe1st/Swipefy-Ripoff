@@ -9,7 +9,7 @@ There are __~10050__ Song in the database right now.
 Get the real Swipefy here: https://swipefy.app
 </p>
 <p>
-Shoutout to Sjoerd @netlob (https://github.com/netlob) for creating Swipefy
+Shoutout to Sjoerd **[@netlob](https://github.com/netlob)** for creating Swipefy
 </p>
 <p>
 <em>Disclaimer: This Project is NOT affiliated with Swipefy B.V. in any way.<em>
