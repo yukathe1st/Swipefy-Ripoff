@@ -1,7 +1,7 @@
 # Swipefy Ripoff
 A litte Swipefy Copy written just by AI and using PocketBase (dont take it to serious pls)
 > [!NOTE]  
-> It may take a few moments for the Page to load (API is not optimized).
+> It may take a few moments for the Page to load (maybe changing that in future).
 ## Current Status
 There are __~10050__ Song in the database right now.
 <hr>
