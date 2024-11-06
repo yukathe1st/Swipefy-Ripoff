@@ -207,7 +207,10 @@
 
             async function fetchSongDetails(songId) {
                 try {
-                    return await pb.collection('songs').getOne(songId);
+                    return await pb.collection('songs').getOne(songId, {
+                            fields: 'Name,Artist_s,spotify_id,preview_url,cover_url',
+                            $autoCancel: false
+                        });
                 } catch (error) {
                     console.error('Error fetching song details:', error);
                     return null;
