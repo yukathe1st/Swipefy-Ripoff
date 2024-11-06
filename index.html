@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Swipefy Ripoff</title>
+    <title>Swipefy - Song List</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @keyframes fadeInOut {
@@ -152,6 +152,7 @@
             let isFirstInteraction = true;
             let isAutoplayEnabled = true;
             let likedSongs = [];
+            let preloadedSongs = [];
 
             // Ladebildschirm-Animation
             const loadingText = document.getElementById('loadingText');
@@ -181,11 +182,21 @@
 
             async function fetchAllSongIds() {
                 try {
-                    const result = await pb.collection('songs').getList(1, 500, {
-                        fields: 'id',
-                        $autoCancel: false
-                    });
-                    allSongIds = result.items.map(item => item.id);
+                    let allIds = [];
+                    let page = 1;
+                    let hasMore = true;
+
+                    while (hasMore) {
+                        const result = await pb.collection('songs').getList(page, 500, {
+                            fields: 'id',
+                            $autoCancel: false
+                        });
+                        allIds = allIds.concat(result.items.map(item => item.id));
+                        hasMore = page * 500 < result.totalItems;
+                        page++;
+                    }
+
+                    allSongIds = allIds;
                     return allSongIds;
                 } catch (error) {
                     console.error('Error fetching song IDs:', error);
@@ -203,21 +214,48 @@
                 }
             }
 
-            async function fetchRandomSong() {
-                if (allSongIds.length === 0) {
-                    await fetchAllSongIds();
-                }
-                if (allSongIds.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * allSongIds.length);
-                    const randomSongId = allSongIds[randomIndex];
-                    const song = await fetchSongDetails(randomSongId);
-                    if (song) {
-                        displaySong(song);
-                    } else {
-                        songList.innerHTML = '<p class="text-gray-500">Failed to load song. Please try again.</p>';
+            async function preloadSongs(count) {
+                for (let i = 0; i < count; i++) {
+                    if (allSongIds.length === 0) {
+                        await fetchAllSongIds();
                     }
+                    if (allSongIds.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * allSongIds.length);
+                        const randomSongId = allSongIds[randomIndex];
+                        const song = await fetchSongDetails(randomSongId);
+                        if (song) {
+                            preloadedSongs.push(song);
+                            // Preload image
+                            new Image().src = song.cover_url;
+                            // Preload audio
+                            const audio = new Audio();
+                            audio.preload = 'metadata';
+                            audio.src = song.preview_url;
+                        }
+                    }
+                }
+            }
+
+            async function fetchRandomSong() {
+                let song;
+                if (preloadedSongs.length > 0) {
+                    song = preloadedSongs.shift();
                 } else {
-                    songList.innerHTML = '<p class="text-gray-500">No songs available.</p>';
+                    if (allSongIds.length === 0) {
+                        await fetchAllSongIds();
+                    }
+                    if (allSongIds.length > 0) {
+                        const randomIndex = Math.floor(Math.random() * allSongIds.length);
+                        const randomSongId = allSongIds[randomIndex];
+                        song = await fetchSongDetails(randomSongId);
+                    }
+                }
+
+                if (song) {
+                    displaySong(song);
+                    preloadSongs(3 - preloadedSongs.length); // Ensure we always have 3 preloaded songs
+                } else {
+                    songList.innerHTML = '<p class="text-gray-500">Failed to load song. Please try again.</p>';
                 }
             }
 
@@ -452,10 +490,12 @@
                 }
             }
 
-            // Initial fetch of song IDs
+            // Initial fetch of song IDs and preload
             fetchAllSongIds().then(() => {
-                fetchRandomSong();
-                hideLoadingScreen();
+                preloadSongs(3).then(() => {
+                    fetchRandomSong();
+                    hideLoadingScreen();
+                });
             });
         });
     </script>
