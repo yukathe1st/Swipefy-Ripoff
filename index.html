@@ -131,7 +131,7 @@
             "Getting ready to rock..."
         ];
         const loadingTextDuration = 3; // Dauer in Sekunden
-        const infoMessage = "Please give the app a bit time to load, it is not optimized for loading fast atm."; // Hier können Sie Ihre Info-Nachricht eintragen
+        const infoMessage = "Please give the app a bit time to load, it is not completely optimized for loading fast atm."; // Hier können Sie Ihre Info-Nachricht eintragen
 
         let isFirstSongChange = true;
 
@@ -148,7 +148,7 @@
             const likedSongsPopup = document.getElementById('likedSongsPopup');
             const likedSongsList = document.getElementById('likedSongsList');
             const closeLikedSongs = document.getElementById('closeLikedSongs');
-            let allSongs = [];
+            let allSongIds = [];
             let isFirstInteraction = true;
             let isAutoplayEnabled = true;
             let likedSongs = [];
@@ -179,24 +179,43 @@
             // Zeige die Info-Nachricht an
             infoMessageTextElement.textContent = infoMessage;
 
-            async function fetchAllSongs() {
+            async function fetchAllSongIds() {
                 try {
-                    allSongs = await pb.collection('songs').getFullList();
-                    return allSongs;
+                    const result = await pb.collection('songs').getList(1, 500, {
+                        fields: 'id',
+                        $autoCancel: false
+                    });
+                    allSongIds = result.items.map(item => item.id);
+                    return allSongIds;
                 } catch (error) {
-                    console.error('Error fetching songs:', error);
+                    console.error('Error fetching song IDs:', error);
                     songList.innerHTML = '<p class="text-red-500">Error fetching songs. Please try again later.</p>';
                     return [];
                 }
             }
 
-            async function fetchRandomSong() {
-                if (allSongs.length === 0) {
-                    await fetchAllSongs();
+            async function fetchSongDetails(songId) {
+                try {
+                    return await pb.collection('songs').getOne(songId);
+                } catch (error) {
+                    console.error('Error fetching song details:', error);
+                    return null;
                 }
-                if (allSongs.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * allSongs.length);
-                    displaySong(allSongs[randomIndex]);
+            }
+
+            async function fetchRandomSong() {
+                if (allSongIds.length === 0) {
+                    await fetchAllSongIds();
+                }
+                if (allSongIds.length > 0) {
+                    const randomIndex = Math.floor(Math.random() * allSongIds.length);
+                    const randomSongId = allSongIds[randomIndex];
+                    const song = await fetchSongDetails(randomSongId);
+                    if (song) {
+                        displaySong(song);
+                    } else {
+                        songList.innerHTML = '<p class="text-gray-500">Failed to load song. Please try again.</p>';
+                    }
                 } else {
                     songList.innerHTML = '<p class="text-gray-500">No songs available.</p>';
                 }
@@ -433,8 +452,8 @@
                 }
             }
 
-            // Initial fetch of songs
-            fetchAllSongs().then(() => {
+            // Initial fetch of song IDs
+            fetchAllSongIds().then(() => {
                 fetchRandomSong();
                 hideLoadingScreen();
             });
